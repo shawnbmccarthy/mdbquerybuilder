@@ -64,6 +64,7 @@ public class QueryBuilder {
                 rule.append(label, new Document("$exists", false));
             } else if(operator.equals("!=_with_null")){
                 //TODO: fix (not what this means)
+                System.err.println("found !=_with_null, this will not be correctly matched");
                 rule.append(label, getTypedValue(value, datatype));
             } else {
                 System.err.println("WARNING: operator not supported: " + operator);
