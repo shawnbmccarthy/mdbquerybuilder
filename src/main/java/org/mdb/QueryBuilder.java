@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,8 +14,8 @@ import org.bson.Document;
 import org.bson.types.Decimal128;
 
 public class QueryBuilder {
-    public static final String CONDITION_FIELD = "condition";
-    public static final String OPERATOR_FIELD = "operator";
+    private static final String CONDITION_FIELD = "condition";
+    private static final String OPERATOR_FIELD = "operator";
 
     public static Document buildFromJson(String jsonFile) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
@@ -22,13 +23,13 @@ public class QueryBuilder {
         return new Document("$match", processRule(root));
     }
 
-    private static final Document processRule(JsonNode node){
+    private static Document processRule(JsonNode node){
         // this is the entire rule file, essentially
         Document rule = new Document();
         if(node.has(CONDITION_FIELD)){
             if(!node.get("isDisabled").asBoolean()){
                 String key = "$" + node.get("condition").asText();
-                List<Document> a = new ArrayList<Document>();
+                List<Document> a = new ArrayList<>();
                 JsonNode rules = node.get("rules");
                 for(final JsonNode r : rules) {
                     Document item = processRule(r);
@@ -48,33 +49,42 @@ public class QueryBuilder {
             String value = node.get("value").asText();
             String label = node.get("label").asText();
 
-            if (operator.equals("=")) {
-                rule.append(label, getTypedValue(value, datatype));
-            } else if (operator.equals(">=")) {
-                rule.append("$gte", new Document(label, getTypedValue(value, datatype)));
-            } else if(operator.equals("<=")) {
-                rule.append("$lte", new Document(label, getTypedValue(value, datatype)));
-            } else if(operator.equals("in")) {
-                rule.append("$in", new Document(label, value));
-            } else if(operator.equals("not_in")){
-                rule.append("$nin", new Document(label, value));
-            } else if(operator.equals("is_not_null")){
-                rule.append(label, new Document("$exists", true));
-            } else if(operator.equals("is_null")){
-                rule.append(label, new Document("$exists", false));
-            } else if(operator.equals("!=_with_null")){
-                //TODO: fix (not what this means)
-                System.err.println("found !=_with_null, this will not be correctly matched");
-                rule.append(label, getTypedValue(value, datatype));
-            } else {
-                System.err.println("WARNING: operator not supported: " + operator);
-                rule.append(label, getTypedValue(value, datatype));
+            switch (operator){
+                case "=":
+                    rule.append(label, getTypedValue(value, datatype));
+                    break;
+                case ">=":
+                    rule.append(label, new Document("$gte", getTypedValue(value, datatype)));
+                    break;
+                case "<=":
+                    rule.append(label, new Document("$lte", getTypedValue(value, datatype)));
+                    break;
+                case "in":
+                    rule.append(label, new Document("$in", Arrays.asList(value.split(","))));
+                    break;
+                case "not_in":
+                    rule.append(label, new Document("$nin", Arrays.asList(value.split(","))));
+                    break;
+                case "is_not_null":
+                    rule.append(label, new Document("$exists", true));
+                    break;
+                case "is_null":
+                    rule.append(label, new Document("$exists", false));
+                    break;
+                case "!=_with_null":
+                    //TODO: fix (not what this means)
+                    System.err.println("found !=_with_null, this will not be correctly matched, using equal(=)");
+                    rule.append(label, getTypedValue(value, datatype));
+                    break;
+                default:
+                    System.err.println("WARNING: operator not supported, using equal(=): " + operator);
+                    rule.append(label, getTypedValue(value, datatype));
             }
         }
         return rule;
     }
 
-    private static final Object getTypedValue(String value, String type){
+    private static Object getTypedValue(String value, String type){
         //short circuit
         if(value.equals("null") || value == null) {
             return null;
