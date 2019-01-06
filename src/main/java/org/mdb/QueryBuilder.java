@@ -73,7 +73,7 @@ public class QueryBuilder {
                     break;
                 case "!=_with_null":
                     //TODO: fix (not what this means)
-                    System.err.println("found !=_with_null, this will not be correctly matched, using equal(=)");
+                    System.err.println("WARNING: found !=_with_null, this will not be correctly matched, using equal(=)");
                     rule.append(label, getTypedValue(value, datatype));
                     break;
                 default:
@@ -89,13 +89,15 @@ public class QueryBuilder {
         if(value.equals("null") || value == null) {
             return null;
         }
-        if(type.equals("Decimal128")){
-            return new Decimal128(new BigDecimal(value));
-        } else if(type.equals("String")){
-            return value;
-        } else {
-            System.err.println("WARNING: type not supported: " + type);
-            return value;
+
+        switch (type){
+            case "Decimal128":
+                return new Decimal128(new BigDecimal(value));
+            case "String":
+                return value;
+            default:
+                System.err.println("WARNING: type not supported: " + type);
+                return value;
         }
     }
 }
