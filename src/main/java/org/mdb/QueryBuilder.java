@@ -23,8 +23,11 @@ public class QueryBuilder {
         return new Document("$match", processRule(root));
     }
 
+    /*
+     * recursively process conditions, with the base case of an operator which adds a single key/value map to
+     * the current stacks document and returns it
+     */
     private static Document processRule(JsonNode node){
-        // this is the entire rule file, essentially
         Document rule = new Document();
         if(node.has(CONDITION_FIELD)){
             if(!node.get("isDisabled").asBoolean()){
