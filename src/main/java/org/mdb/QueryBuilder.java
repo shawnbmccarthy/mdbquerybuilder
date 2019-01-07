@@ -17,15 +17,24 @@ public class QueryBuilder {
     private static final String CONDITION_FIELD = "condition";
     private static final String OPERATOR_FIELD = "operator";
 
-    public static Document buildFromJson(String jsonFile) throws IOException {
+    public static Document buildFromJson(String jsonFile, Document masterQuery) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(new File(jsonFile));
-        return new Document("$match", processRule(root));
+        Document filters = processRule(root);
+
+        if(masterQuery == null) {
+            return new Document("$match", filters);
+        } else {
+            Document query = new Document();
+            masterQuery.putAll(filters);
+            query.put("$match", masterQuery);
+            return query;
+        }
     }
 
     /*
      * recursively process conditions, with the base case of an operator which adds a single key/value map to
-     * the current stacks document and returns it
+     * the current stacks document and return it
      */
     private static Document processRule(JsonNode node){
         Document rule = new Document();
