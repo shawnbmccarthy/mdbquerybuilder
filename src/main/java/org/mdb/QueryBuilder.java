@@ -85,12 +85,12 @@ public class QueryBuilder {
                     break;
                 case "!=_with_null":
                     //TODO: fix (not what this means)
-                    System.err.println("WARNING: found !=_with_null, will not process");
-                    //rule.append(label, getTypedValue(value, datatype));
+                    System.err.println("WARNING: found !=_with_null, treating as not equal");
+                case "!=":
+                    rule.append(label, new Document("$ne", getTypedValue(value, datatype)));
                     break;
                 default:
-                    System.err.println("WARNING: operator not supported, using equal(=): " + operator);
-                    //rule.append(label, getTypedValue(value, datatype));
+                    System.err.println("WARNING: operator not supported: " + operator);
             }
         }
         return rule;
