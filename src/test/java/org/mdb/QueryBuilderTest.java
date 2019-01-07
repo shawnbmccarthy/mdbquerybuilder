@@ -6,14 +6,15 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 import org.bson.Document;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
 
 /* test assumes a local mongod is running */
 public class QueryBuilderTest {
-    private static Consumer<Document> printDocument = (d) -> System.out.println(d);
+    private static Consumer<Document> printDocument = System.out::println;
     private MongoClient client;
     private MongoDatabase db;
     private MongoCollection<Document> coll;

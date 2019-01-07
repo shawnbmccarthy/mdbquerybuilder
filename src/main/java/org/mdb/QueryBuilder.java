@@ -39,21 +39,17 @@ public class QueryBuilder {
     private static Document processRule(JsonNode node){
         Document rule = new Document();
         if(node.has(CONDITION_FIELD)){
-            if(!node.get("isDisabled").asBoolean()){
-                String key = "$" + node.get("condition").asText();
-                List<Document> a = new ArrayList<>();
-                JsonNode rules = node.get("rules");
-                for(final JsonNode r : rules) {
-                    Document item = processRule(r);
-                    if(item != null) {
-                        a.add(item);
-                    }
+            String key = "$" + node.get("condition").asText();
+            List<Document> a = new ArrayList<>();
+            JsonNode rules = node.get("rules");
+            for(final JsonNode r : rules) {
+                Document item = processRule(r);
+                if(item != null) {
+                    a.add(item);
                 }
-                if(a.size() > 0) {
-                    rule.append(key, a);
-                }
-            } else {
-                return null;
+            }
+            if(a.size() > 0) {
+                rule.append(key, a);
             }
         } else if(node.has(OPERATOR_FIELD)) {
             String operator = node.get("operator").asText();
