@@ -6,6 +6,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 import org.bson.Document;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -20,18 +22,20 @@ public class QueryBuilderTest {
     private MongoCollection<Document> coll;
     private ClassLoader cl;
     private Document masterQuery;
+    private JsonWriterSettings jws;
 
     QueryBuilderTest(){
         client = MongoClients.create();
         db = client.getDatabase("demo");
         coll = db.getCollection("dummy");
         cl = getClass().getClassLoader();
+        jws = JsonWriterSettings.builder().indent(true).outputMode(JsonMode.SHELL).build();
         masterQuery = new Document().append("TOP_ELEM1", true).append("TOP_ELEM2", false);
     }
 
     void runTest(String file, Document masterQuery) throws Exception {
         Document rule = QueryBuilder.buildFromJson(cl.getResource(file).getFile(), masterQuery);
-        System.out.println(rule.toJson());
+        System.out.println(rule.toJson(jws));
         coll.aggregate(Arrays.asList(rule)).forEach(printDocument);
     }
 
